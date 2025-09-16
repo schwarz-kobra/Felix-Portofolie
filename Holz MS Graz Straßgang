@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Holz MS Graz Straßgang – Tron-Stil</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background-color: #0d0d0d;
+      color: #00ffff;
+    }
+    header {
+      background-color: #1a1a1a;
+      padding: 20px;
+      text-align: center;
+      border-bottom: 2px solid #00ffff;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      background-color: #1a1a1a;
+      border-bottom: 1px solid #00ffff;
+      flex-wrap: wrap;
+    }
+    nav a {
+      color: #00ffff;
+      padding: 14px 20px;
+      text-decoration: none;
+      transition: background 0.3s;
+    }
+    nav a:hover {
+      background-color: #00ffff;
+      color: #1a1a1a;
+    }
+    main {
+      padding: 40px;
+      text-align: center;
+    }
+    section {
+      margin-bottom: 60px;
+    }
+    h1, h2 {
+      color: #00ffff;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      border: 2px solid #00ffff;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li::before {
+      content: "🔹 ";
+      color: #00ffff;
+    }
+    footer {
+      background-color: #1a1a1a;
+      text-align: center;
+      padding: 20px;
+      border-top: 2px solid #00ffff;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Holz MS Graz Straßgang</h1>
+    <p>Die moderne Art des Lernens</p>
+  </header>
+  <nav>
+    <a href="#">Startseite</a>
+    <a href="#">Unsere Schule</a>
+    <a href="#">Ausbildung</a>
+    <a href="#">Aktuelles</a>
+    <a href="#">Kontakt</a>
+  </nav>
+  <main>
+    <section>
+      <h2>Praxisorientiert & modern</h2>
+      <p>Du liebst es, mit deinen eigenen Händen etwas zu erschaffen? Oder fasziniert dich die Welt der Technik, Experimente und digitalen Möglichkeiten? Bei uns kannst du beides erleben!</p>
+      <img src="https://via.placeholder.com/800x400?text=Bild+Praxis" alt="Praxisorientierter Unterricht">
+    </section>
+    <section>
+      <h2>Unsere Schwerpunkte</h2>
+      <ul>
+        <li>Holz, Design & Kreativität</li>
+        <li>Technik & Innovation M.I.N.T</li>
+      </ul>
+      <img src="https://via.placeholder.com/800x400?text=Bild+Schwerpunkte" alt="Schwerpunkte Bild">
+    </section>
+    <section>
+      <h2>Galerie & Projekte</h2>
+      <img src="https://via.placeholder.com/800x400?text=Projekt+1" alt="Projektbild 1">
+      <img src="https://via.placeholder.com/800x400?text=Projekt+2" alt="Projektbild 2">
+      <img src="https://via.placeholder.com/800x400?text=Projekt+3" alt="Projektbild 3">
+    </section>
+    <section>
+      <h2>Kontakt</h2>
+      <p>Aribonenstraße 14, 8054 Graz</p>
+      <p>Telefon: +43 316 872-6955</p>
+      <p>E-Mail: ms.strassgang@ms-strassgang.edu.graz.at</p>
+      <img src="https://via.placeholder.com/800x400?text=Kontakt+Bild" alt="Schulgebäude">
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2025 Mittelschule Graz-Straßgang</p>
+  </footer>
+</body>
+</html>
