@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tastatur-Spiel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+            background-color: black;
+            color: #00ff00;
+        }
+        #letter {
+            font-size: 50px;
+            font-weight: bold;
+            color: #ff00ff;
+            text-shadow: 0 0 10px #ff00ff;
+            position: absolute;
+        }
+        #timer {
+            margin-top: 20px;
+            font-size: 20px;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        #result, #percentage {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffcc00;
+            text-shadow: 0 0 10px #ffcc00;
+        }
+        #end-screen img {
+            width: 100px;
+            margin-top: 20px;
+        }
+        footer {
+            margin-top: 50px;
+            color: #ffffff;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tastatur-Spiel</h1>
+    
+    <audio id="click-sound" src="click.mp3"></audio>
+    <audio id="success-sound" src="success.mp3"></audio>
+    
+    <div id="game-screen">
+        <h2>Drücke die angezeigte Taste oder Maustaste so schnell wie möglich!</h2>
+        <div id="letter">A</div>
+        <div id="timer">Zeit: 0 ms</div>
+        <div id="result"></div>
+    </div>
+    
+    <div id="end-screen" style="display: none;">
+        <h2>Spiel beendet!</h2>
+        <div id="final-result"></div>
+        <div id="percentage"></div>
+        <img src="smiley.png" alt=":)">
+        <button onclick="restartGame()">Weiter</button>
+    </div>
+    
+    <footer>&copy; Felix.g</footer>
+    
+    <script>
+        let startTime, endTime;
+        let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('');
+        let currentChar = '';
+        let totalTime = 0, attempts = 0, maxAttempts = 10;
+
+        function showNewChar() {
+            if (attempts >= maxAttempts) return endGame();
+            currentChar = characters[Math.floor(Math.random() * characters.length)];
+            document.getElementById('letter').textContent = currentChar;
+            startTime = new Date().getTime();
+        }
+
+        function endGame() {
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('end-screen').style.display = 'block';
+            document.getElementById('final-result').textContent = `Gesamtzeit: ${totalTime} ms`;
+            document.getElementById('percentage').textContent = `Genauigkeit: ${Math.max(100 - (totalTime / maxAttempts / 5), 0).toFixed(2)}%`;
+            document.getElementById('success-sound').play();
+        }
+
+        function restartGame() {
+            totalTime = 0; attempts = 0;
+            document.getElementById('end-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            showNewChar();
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key.toUpperCase() === currentChar) {
+                endTime = new Date().getTime();
+                totalTime += (endTime - startTime);
+                attempts++;
+                document.getElementById('click-sound').play();
+                showNewChar();
+            }
+        });
+        
+        document.addEventListener('mousedown', () => {
+            document.getElementById('click-sound').play();
+        });
+        
+        showNewChar();
+    </script>
+</body>
+</html>

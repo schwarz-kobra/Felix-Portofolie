@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schreibspiel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+            background-color: black;
+            color: white;
+        }
+        #word-display {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        #input-field {
+            font-size: 18px;
+            padding: 10px;
+            border: 2px solid white;
+            border-radius: 5px;
+            background-color: black;
+            color: white;
+        }
+        #message {
+            margin-top: 20px;
+            font-size: 20px;
+            color: green;
+        }
+        #hint {
+            margin-top: 10px;
+            font-size: 18px;
+            color: yellow;
+            display: none;
+        }
+        .button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #quit-button {
+            background-color: red;
+            color: white;
+        }
+        .correct {
+            color: green;
+        }
+        .incorrect {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Schreibspiel</h1>
+    <div id="word-display"></div>
+    <input type="text" id="input-field" placeholder="Wort eingeben...">
+    <div id="message"></div>
+    <div id="hint"></div>
+    <button id="quit-button" class="button" onclick="quitGame()">Beenden</button>
+    
+    <script>
+        // Liste von Schimpfwörtern (kann nach Bedarf erweitert werden)
+        const badWords = ["arsch", "kacke", "idiot", "dumm", "blöd"];
+
+        // Wortlisten für jedes Level (10 Wörter pro Level)
+        const levelWords = {
+            1: ["Haus", "Baum", "Tisch", "Fenster", "Lampe", "Hund", "Katze", "Buch", "Blume", "Auto"],
+            2: ["Computer", "Programmierung", "Tastatur", "Bildschirm", "Maus", "Internet", "Daten", "Speicher", "Netzwerk", "Software"],
+            3: ["Elefant", "Papier", "Laptop", "Flughafen", "Schiff", "Reise", "Flughafen", "Zug", "Hotel", "Bahn"],
+            4: ["Telefon", "Tablet", "Smartphone", "Kamera", "Speicherkarte", "USB", "Bluetooth", "Adapter", "Ladegerät", "Kopfhörer"],
+            5: ["Fahrrad", "Laufen", "Wandern", "Joggen", "Schwimmen", "Fitness", "Sport", "Yoga", "Tennis", "Golf"]
+        };
+
+        let currentWord = "";
+        let level = 1;
+        const maxLevel = 5;
+        let attempts = 0;
+
+        function newWord() {
+            if (level > maxLevel) {
+                document.getElementById("word-display").textContent = "Spiel beendet! Du hast alle Level geschafft!";
+                document.getElementById("input-field").style.display = "none";
+                return;
+            }
+
+            // Zufälliges Wort aus der Liste des aktuellen Levels auswählen
+            const wordsAtLevel = levelWords[level];
+            let randomIndex = Math.floor(Math.random() * wordsAtLevel.length);
+            currentWord = wordsAtLevel[randomIndex];
+
+            // Überprüfen, ob das Wort in der Liste der Schimpfwörter enthalten ist
+            while (badWords.includes(currentWord.toLowerCase())) {
+                randomIndex = Math.floor(Math.random() * wordsAtLevel.length);
+                currentWord = wordsAtLevel[randomIndex];
+            }
+
+            levelWords[level].splice(randomIndex, 1); // Entfernt das verwendete Wort aus der Liste
+
+            document.getElementById("word-display").textContent = `Level ${level}: ${currentWord}`;
+            document.getElementById("input-field").value = "";
+            document.getElementById("hint").style.display = "none";
+            attempts = 0;
+        }
+
+        document.getElementById("input-field").addEventListener("input", function() {
+            let inputText = this.value;
+            let coloredText = "";
+            attempts++;
+
+            for (let i = 0; i < currentWord.length; i++) {
+                if (i < inputText.length) {
+                    if (inputText[i] === currentWord[i]) {
+                        coloredText += `<span class='correct'>${inputText[i]}</span>`;
+                    } else {
+                        coloredText += `<span class='incorrect'>${inputText[i]}</span>`;
+                    }
+                } else {
+                    coloredText += "_";
+                }
+            }
+            document.getElementById("word-display").innerHTML = `Level ${level}: ${coloredText}`;
+
+            if (inputText === currentWord) {
+                level++;
+                document.getElementById("message").textContent = "Richtig! Nächstes Level...";
+                setTimeout(() => {
+                    document.getElementById("message").textContent = "";
+                    newWord();
+                }, 1000);
+            }
+
+            if (attempts >= 3) {
+                document.getElementById("hint").textContent = `Hinweis: Das Wort beginnt mit "${currentWord[0]}"`;
+                document.getElementById("hint").style.display = "block";
+            }
+        });
+
+        function quitGame() {
+            alert("Spiel beendet!");
+            location.reload();
+        }
+
+        newWord();
+    </script>
+</body>
+</html>
