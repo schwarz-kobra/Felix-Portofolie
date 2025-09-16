@@ -25,6 +25,6 @@ Jeder Projektordner enthält in der Regel:
 
 ## Lizenz / Copyright
 
-© 2025 Felix \[Nachname]. Alle Rechte vorbehalten.
+© 2025 Felix \. Alle Rechte vorbehalten.
 Die Inhalte dieses Repositories sind geistiges Eigentum des Autors und dürfen nur privat genutzt werden.
 
