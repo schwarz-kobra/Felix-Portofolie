@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Vokabeltrainer</title>
+  <style>
+    :root{--bg:#f7fbff;--card:#ffffff;--accent:#0b5fff;--muted:#64748b}
+    *{box-sizing:border-box}
+    body{font-family:Inter,ui-sans-serif,system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; margin:0;background:var(--bg);color:#0f172a}
+    .container{max-width:900px;margin:32px auto;padding:20px}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+    h1{margin:0;font-size:1.3rem}
+    .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 6px 18px rgba(12,12,40,.06);margin-bottom:12px}
+    .flex{display:flex;gap:12px}
+    .col{display:flex;flex-direction:column;gap:8px}
+    label{font-size:0.85rem;color:var(--muted)}
+    input[type=text],textarea,select{padding:10px;border:1px solid #e6eef9;border-radius:8px;font-size:0.95rem;width:100%}
+    button{background:var(--accent);color:white;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}
+    button.ghost{background:transparent;color:var(--accent);border:1px solid rgba(11,95,255,.14)}
+    .list{max-height:240px;overflow:auto;margin-top:8px}
+    .item{display:flex;justify-content:space-between;padding:8px;border-radius:8px;border:1px solid #f1f5f9;margin-bottom:6px}
+    .small{font-size:0.85rem;color:var(--muted)}
+    .quiz-area{display:flex;flex-direction:column;gap:10px;align-items:center}
+    .question{font-weight:600;font-size:1.1rem}
+    .choices{display:flex;flex-direction:column;width:100%;max-width:520px;gap:8px}
+    .choice{padding:10px;border-radius:8px;border:1px solid #eef2ff;cursor:pointer}
+    .choice.correct{background:#ecfdf5;border-color:#bbf7d0}
+    .choice.wrong{background:#fff1f2;border-color:#fecaca}
+    .controls{display:flex;gap:8px;align-items:center}
+    footer{margin-top:18px;font-size:0.85rem;color:var(--muted)}
+    @media (max-width:720px){.flex{flex-direction:column}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Vokabeltrainer</h1>
+      <div class="small">Einfacher, offline Vokabeltrainer — lokal gespeichert</div>
+    </header>
+
+    <section class="card" id="editor">
+      <div class="flex">
+        <div style="flex:1">
+          <label>Muttersprache / Hinweis (z. B. Deutsch)</label>
+          <input id="langFrom" type="text" value="Deutsch">
+        </div>
+        <div style="width:160px">
+          <label>Zielsprache (z. B. Englisch)</label>
+          <input id="langTo" type="text" value="Englisch">
+        </div>
+      </div>
+
+      <div style="margin-top:12px" class="flex">
+        <div style="flex:1">
+          <label>Wort / Ausdruck (von)</label>
+          <input id="wordFrom" type="text" placeholder="z. B. Haus">
+        </div>
+        <div style="flex:1">
+          <label>Übersetzung (nach)</label>
+          <input id="wordTo" type="text" placeholder="z. B. house">
+        </div>
+        <div style="width:120px;display:flex;align-items:flex-end">
+          <button id="addBtn">Hinzufügen</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+        <button id="clearBtn" class="ghost">Alle löschen</button>
+        <button id="exportBtn" class="ghost">Export (JSON)</button>
+        <button id="importBtn" class="ghost">Import (JSON)</button>
+        <input id="fileInput" type="file" accept="application/json" style="display:none">
+      </div>
+
+      <div class="list" id="vocabList" style="margin-top:12px"></div>
+    </section>
+
+    <section class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <div class="col">
+          <label>Quiz-Modus</label>
+          <select id="modeSelect">
+            <option value="mc">Multiple Choice</option>
+            <option value="type">Eintippen (genau)</option>
+          </select>
+        </div>
+        <div class="col">
+          <label>Anzahl Fragen</label>
+          <input id="numQ" type="text" value="10">
+        </div>
+        <div style="align-self:end">
+          <button id="startBtn">Quiz starten</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="quizCard" style="display:none">
+      <div class="quiz-area">
+        <div style="width:100%;display:flex;justify-content:space-between;align-items:center">
+          <div class="small" id="progressText">Frage 0 / 0</div>
+          <div class="small">Punkte: <span id="score">0</span></div>
+        </div>
+
+        <div class="question" id="questionText">—</div>
+
+        <div id="answerArea" class="choices"></div>
+
+        <div class="controls">
+          <button id="nextBtn" style="display:none">Nächste</button>
+          <button id="endBtn" class="ghost">Beenden</button>
+        </div>
+
+        <div class="small" id="correctText"></div>
+      </div>
+    </section>
+
+    <footer>Du kannst Vokabeln hinzufügen, exportieren/importieren oder direkt ein Quiz starten. Daten werden im Browser gespeichert (localStorage).</footer>
+  </div>
+
+  <script>
+    // Simple vocab trainer - single file
+    const LS_KEY = 'vocabTrainer.data.v1';
+    let data = {from:'Deutsch', to:'Englisch', list:[]};
+
+    // DOM
+    const langFrom = document.getElementById('langFrom');
+    const langTo = document.getElementById('langTo');
+    const wordFrom = document.getElementById('wordFrom');
+    const wordTo = document.getElementById('wordTo');
+    const addBtn = document.getElementById('addBtn');
+    const vocabList = document.getElementById('vocabList');
+    const clearBtn = document.getElementById('clearBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const importBtn = document.getElementById('importBtn');
+    const fileInput = document.getElementById('fileInput');
+
+    const modeSelect = document.getElementById('modeSelect');
+    const numQ = document.getElementById('numQ');
+    const startBtn = document.getElementById('startBtn');
+
+    const quizCard = document.getElementById('quizCard');
+    const questionText = document.getElementById('questionText');
+    const answerArea = document.getElementById('answerArea');
+    const progressText = document.getElementById('progressText');
+    const scoreEl = document.getElementById('score');
+    const nextBtn = document.getElementById('nextBtn');
+    const endBtn = document.getElementById('endBtn');
+    const correctText = document.getElementById('correctText');
+
+    // load
+    function load(){
+      const raw = localStorage.getItem(LS_KEY);
+      if(raw){
+        try{ data = JSON.parse(raw); }catch(e){console.warn('invalid saved data')}
+      }
+      renderList();
+      langFrom.value = data.from||'Deutsch';
+      langTo.value = data.to||'Englisch';
+    }
+    function save(){ localStorage.setItem(LS_KEY, JSON.stringify(data)); }
+
+    function renderList(){
+      vocabList.innerHTML = '';
+      if(!data.list.length){ vocabList.innerHTML = '<div class="small">Keine Vokabeln. Füge welche hinzu.</div>'; return }
+      data.list.forEach((v,i)=>{
+        const el = document.createElement('div'); el.className='item';
+        el.innerHTML = `<div><strong>${escapeHtml(v.from)}</strong> → <span class="small">${escapeHtml(v.to)}</span></div>`;
+        const right = document.createElement('div');
+        right.style.display='flex'; right.style.gap='8px';
+        const del = document.createElement('button'); del.className='ghost'; del.textContent='Löschen';
+        del.onclick = ()=>{ if(confirm('Wirklich löschen?')){ data.list.splice(i,1); save(); renderList(); } };
+        right.appendChild(del);
+        el.appendChild(right);
+        vocabList.appendChild(el);
+      });
+    }
+
+    addBtn.addEventListener('click', ()=>{
+      const a = wordFrom.value.trim();
+      const b = wordTo.value.trim();
+      if(!a||!b){ alert('Beide Felder müssen ausgefüllt sein.'); return }
+      data.list.push({from:a,to:b});
+      wordFrom.value=''; wordTo.value=''; save(); renderList();
+    });
+
+    clearBtn.addEventListener('click', ()=>{
+      if(!data.list.length) return;
+      if(confirm('Alle Vokabeln löschen?')){ data.list=[]; save(); renderList(); }
+    });
+
+    exportBtn.addEventListener('click', ()=>{
+      const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'vokabeln.json'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    importBtn.addEventListener('click', ()=> fileInput.click());
+    fileInput.addEventListener('change', (e)=>{
+      const f = e.target.files[0]; if(!f) return;
+      const reader = new FileReader();
+      reader.onload = (ev)=>{
+        try{
+          const parsed = JSON.parse(ev.target.result);
+          if(parsed && Array.isArray(parsed.list)){
+            data = parsed; save(); renderList(); alert('Import erfolgreich.');
+          } else alert('Ungültiges Format. Erwartet {from,to,list:[]}');
+        }catch(err){ alert('Fehler beim Einlesen: '+err.message) }
+      };
+      reader.readAsText(f);
+      fileInput.value='';
+    });
+
+    // Quiz logic
+    let quiz = null;
+    startBtn.addEventListener('click', ()=>{
+      if(!data.list.length){ alert('Bitte zuerst Vokabeln hinzufügen.'); return }
+      data.from = langFrom.value.trim()||data.from;
+      data.to = langTo.value.trim()||data.to;
+      save();
+      const mode = modeSelect.value;
+      const totalReq = parseInt(numQ.value)||10;
+      const pool = shuffle([...data.list]);
+      const total = Math.min(totalReq, pool.length);
+      quiz = {mode, total, pool:pool.slice(0,total), index:0, score:0};
+      scoreEl.textContent = '0';
+      quizCard.style.display='block';
+      correctText.textContent='';
+      showQuestion();
+    });
+
+    function showQuestion(){
+      const q = quiz.pool[quiz.index];
+      progressText.textContent = `Frage ${quiz.index+1} / ${quiz.total}`;
+      if(quiz.mode==='mc'){
+        questionText.textContent = `${data.from}: ${q.from}`;
+        answerArea.innerHTML = '';
+        const choices = makeMCChoices(q, data.list);
+        choices.forEach(c=>{
+          const b = document.createElement('div'); b.className='choice'; b.textContent = c.text;
+          b.onclick = ()=> handleChoice(b, c.correct, q);
+          answerArea.appendChild(b);
+        });
+      } else {
+        questionText.textContent = `${data.from}: ${q.from}`;
+        answerArea.innerHTML = '';
+        const input = document.createElement('input'); input.type='text'; input.placeholder='Antwort eintippen'; input.style.padding='10px'; input.style.borderRadius='8px'; input.style.width='320px';
+        const sub = document.createElement('button'); sub.textContent='Antwort prüfen'; sub.style.marginLeft='8px';
+        sub.onclick = ()=>{
+          const val = input.value.trim();
+          const correct = val.toLowerCase() === q.to.toLowerCase();
+          showResultTyped(correct, q);
+        };
+        const wrapper = document.createElement('div'); wrapper.style.display='flex'; wrapper.appendChild(input); wrapper.appendChild(sub);
+        answerArea.appendChild(wrapper);
+      }
+    }
+
+    function handleChoice(el, isCorrect, q){
+      // reveal
+      const children = answerArea.querySelectorAll('.choice');
+      children.forEach(c=>{ c.onclick=null; });
+      if(isCorrect){ el.classList.add('correct'); quiz.score++; scoreEl.textContent = quiz.score; correctText.textContent='Richtig!'; }
+      else { el.classList.add('wrong'); correctText.textContent = `Falsch — richtig wäre: ${q.to}`; }
+      // highlight correct
+      const correctEl = Array.from(children).find(c=>c.textContent===q.to);
+      if(correctEl) correctEl.classList.add('correct');
+      nextBtn.style.display='inline-block';
+    }
+
+    function showResultTyped(correct, q){
+      if(correct){ quiz.score++; scoreEl.textContent = quiz.score; correctText.textContent='Richtig!'; }
+      else correctText.textContent = `Falsch — richtig: ${q.to}`;
+      nextBtn.style.display='inline-block';
+    }
+
+    nextBtn.addEventListener('click', ()=>{
+      quiz.index++;
+      nextBtn.style.display='none';
+      correctText.textContent='';
+      if(quiz.index>=quiz.total){ finishQuiz(); return }
+      showQuestion();
+    });
+
+    endBtn.addEventListener('click', ()=>{ if(confirm('Quiz wirklich beenden?')) finishQuiz(true); });
+
+    function finishQuiz(abort){
+      quizCard.style.display='none';
+      if(!quiz) return;
+      const total = quiz.total;
+      const s = quiz.score;
+      quiz = null;
+      alert(`Ergebnis: ${s} / ${total} (${Math.round(s/total*100)}%)`);
+    }
+
+    // helpers
+    function makeMCChoices(correctItem, all){
+      const choices = [correctItem.to];
+      const others = all.filter(x=>x !== correctItem).map(x=>x.to);
+      shuffle(others);
+      while(choices.length<4 && others.length) choices.push(others.pop());
+      shuffle(choices);
+      return choices.map(t=>({text:t, correct:t===correctItem.to}));
+    }
+
+    function shuffle(arr){
+      for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}
+      return arr;
+    }
+
+    function escapeHtml(s){ return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+    load();
+  </script>
+</body>
+</html>
